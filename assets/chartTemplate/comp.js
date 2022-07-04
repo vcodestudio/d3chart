@@ -4,55 +4,50 @@ export default class D3Comp {
     constructor(data) {
         this.container = data.container;
         this.svg = data.svg;
-        this.padding = data.pad;//[x,y]
-        this.style = data.style;//normal, slope
-        this.x = data.x ?? 0;
-        this.y = data.y ?? 0;
     }
 
-    Band() {
-        const svg = this.svg;
-        const pad = this.padding;
-        const x = this.x;
-        const width = svg.attr("width"), height = svg.attr("height"), innerWidth = width - pad[0], innerHeight = height - pad[1];
-        const xtxt = svg.append("g")
-        .attr("name","xtxt")
-        .style("transform",`translate(0,${height - pad[0]}px)`)
+    // BandX(axisX = null, style = "normal") {
+    //     if(!axisX) return;
 
-        const xxtxt = xtxt
-        .call(d3.axisBottom(x))
-        .selectAll("text")
+    //     const svg = this.svg;
+    //     const pad = this.padding;
+    //     const x = axisX;
+    //     const width = svg.attr("width"), height = svg.attr("height");
+    //     const xtxt = svg.append("g")
+    //     .attr("name","xtxt")
+    //     .style("transform",`translate(0,${height - pad[0]}px)`)
 
-        xxtxt.attr("text-anchor","middle")
+    //     const xxtxt = xtxt
+    //     .call(d3.axisBottom(x))
+    //     .selectAll("text")
 
-        if(this.style == 'slope') {
-            xxtxt
-            .style('transform',(d,i)=>`translate(0,.5rem) rotate(${this.style == 'slope'?-30:0}deg)`)
-        }
+    //     xxtxt.attr("text-anchor","middle")
 
-        svg.selectAll("g[name=xtxt] path,g[name=xtxt] line").attr("stroke-width",0)
-        svg.select("g[name=xtxt]")
-        .append("path")
-        .datum([[pad[1],0],[innerWidth,0]])
-        .attr("d",d3.line().x(d=>d[0]).y(d=>d[1]))
-        .attr("stroke","#000")
-        .attr("stroke-width",3)
+    //     if(style == 'slope') {
+    //         xxtxt
+    //         .style('transform',(d,i)=>`translate(0,.5rem) rotate(${style == 'slope'?-30:0}deg)`)
+    //     }
 
-        console.log("size",xtxt,xtxt.size());
-        return {
-            node:xtxt,
-            child:xxtxt,
-            // width:,
-            // height: 
-        };
-    }   
+    //     svg.selectAll("g[name=xtxt] path,g[name=xtxt] line").attr("stroke-width",0)
+    //     svg.select("g[name=xtxt]")
+    //     .append("path")
+    //     .datum([[0,0],[width,0]])
+    //     .attr("d",d3.line().x(d=>d[0]).y(d=>d[1]))
+    //     .attr("stroke","#000")
+    //     .attr("stroke-width",3)
+
+    //     return xtxt;
+    // }
+
+    // BandY(axisY = null) {
+
+    // }
 
     createToolTip(target = null) {
           // ----------------
   // Create a tooltip
   // ----------------
-  if(this.container && target) {}
-  else return;
+  if(!this.container || !target) return;
 
   const tooltip = this.container
   .append("div")
@@ -66,11 +61,11 @@ export default class D3Comp {
 
   // Three function that change the tooltip when user hover / move / leave a cell
   const mouseover = function(event, d) {
-    // const subgroupName = d3.select(this.parentNode).datum().key;
-    // const subgroupValue = d.data[subgroupName];
-    // tooltip
-    //     .html("subgroup: " + subgroupName + "<br>" + "Value: " + subgroupValue)
-    //     .style("opacity", 1)
+    const subgroupName = d3.select(this.parentNode).datum().key;
+    const subgroupValue = d.data[subgroupName];
+    tooltip
+        .html("subgroup: " + subgroupName + "<br>" + "Value: " + subgroupValue)
+        .style("opacity", 1)
 
   }
   const mousemove = function(event, d) {
@@ -91,7 +86,7 @@ export default class D3Comp {
     return tooltip;
     }
 
-    setAnimation(callback = function(obj) {console.log("mutation",obj)}) {
+    onIntersection(callback = function(obj) {console.log("mutation",obj)}) {
         if(!this.container) return;
         const options = {
             rootMargin: '0px',

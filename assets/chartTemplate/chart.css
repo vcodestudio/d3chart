@@ -1,0 +1,10 @@
+.domain {
+  opacity: 0;
+}
+.axisY {
+  font-size: 1em;
+}
+text {
+  font-size: 14px;
+  line-height: 1em;
+}
