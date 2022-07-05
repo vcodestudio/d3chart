@@ -3,9 +3,6 @@ import D3Comp from "~/assets/chartTemplate/comp";
 
 export default {
   props: {
-    width: {
-      default: 0
-    },
     height: {
       default: 0
     },
@@ -25,7 +22,8 @@ export default {
       svg: null,
       comp: null,
       data: [],
-      transition: null
+      transition: null,
+      width: 0
     }
   },
   mounted() {

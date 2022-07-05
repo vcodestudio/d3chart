@@ -96,7 +96,6 @@ export default class D3Comp {
         const vobj = this;
         this.observer = new IntersectionObserver((refers,observer)=>{
             refers.forEach(function(obj) {
-                console.log(obj);
                 if(obj.isIntersecting) {
                     callback(obj);
                     vobj.clearAnimation();

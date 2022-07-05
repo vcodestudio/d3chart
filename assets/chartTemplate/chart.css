@@ -4,7 +4,16 @@
 .axisY {
   font-size: 1em;
 }
+.axisY text {
+  font-weight: 700;
+}
 text {
   font-size: 14px;
   line-height: 1em;
+}
+.innerRect {
+  font-weight: bold;
+}
+.root svg {
+  width: 100%;
 }

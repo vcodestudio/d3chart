@@ -10,27 +10,26 @@
 <script>
 import * as d3 from "d3";
 import TopColors from "./d3Comps/TopColors.vue";
-import ChartMixin from "~/assets/chartTemplate/chart_mixin";
+import chart_mixin from "~/assets/chartTemplate/mixin";
 
 export default {
-    mixins:[ChartMixin],
+    mixins:[chart_mixin],
+    data() {
+      return {
+        color:["#fdc900", "#ddd", "#7e7e7e", "#ffde99"]
+      }
+    },
     methods: {
         render() {
 
         const body = this.svg.append("g");
-        const radius = Math.min(this.width, this.height) / 2 - this.padding[0];
+        const radius = Math.min(this.width, this.height) / 2;
         body.attr("transform", `translate(${this.width / 2}, ${this.height / 2})`);
         const color = d3.scaleOrdinal()
             .range(this.color);
         const pie = d3.pie()
-            .value(function (d) { return d[1]; });
+            .value(d=>d[1]);
         const data_ready = pie(Object.entries(this.data[0]));
-        const x = d3.scaleBand()
-                  .domain(Object.entries(this.data[0]).map(a=>a[0]))
-                  .range([this.padding[0],this.width - this.padding[0]])
-                  .padding(.3);
-
-        const xtxt = this.comp.bandX(x);
 
         const cs = body
             .selectAll("whatever")
@@ -39,10 +38,8 @@ export default {
             .attr("d", d3.arc()
             .innerRadius(0)
             .outerRadius(radius))
-            .attr("fill", function (d) { return (color(d.data[1])); });
+            .attr("fill", function(d) { return (color(d.data[1])); });
 
-        this.comp.setAnimation((ref)=>{
-        });
         }
     },
     components: { TopColors }
@@ -58,6 +55,7 @@ export default {
         justify-content: center;
         align-items: center;
         padding: .5em 0;
+        margin-bottom: 1rem;
         .item {
             height: 1em;
             line-height: 1em;
