@@ -11,7 +11,7 @@
 <script>
 import * as d3 from "d3";
 import chart_mixin from "~/assets/chartTemplate/mixin";
-import TopColors from './d3Comps/TopColors.vue';
+import TopColors from '~/components/d3Comps/TopColors.vue';
 
 export default {
   mixins:[chart_mixin],
@@ -41,11 +41,12 @@ export default {
       const ywidth = 120
       const cap = 220
       const gap = this.gap
-      let data = this.data;
 
       const subgroups = this.data.columns.slice(1);
       const grp = this.data.columns[0];
       const groups = d3.map(this.data,d=>d[grp]);
+
+      let data = this.data;
 
       this.tabs = subgroups
 
@@ -53,38 +54,37 @@ export default {
       .scaleBand()
       .domain(groups)
       .range([0,this.width])
-      .padding(.1)
+      .padding([.3])
+      .paddingOuter(0)
+
+      const dataset = subgroups.map((a)=>{
+        let datamap = data.map(b=>parseFloat(b[a]));
+        return {key:a,value:datamap}
+      });
+
+      const allValues = dataset.map(a=>a.value).reduce((a,b)=>a.concat(b));
 
       const y = d3.scaleLinear()
-      .domain([0,100])
-      .range([this.height - ywidth,0]);
-
-      //drawer
-      const xsub = d3.scaleBand()
-      .domain(subgroups)
-      .range([0,x.bandwidth()])
-      .padding(.05)
+      .domain([0,d3.max(allValues)])
+      .range([this.height - ywidth,30]);
 
       const color = d3.scaleOrdinal()
       .domain(subgroups)
       .range(this.color)
 
-      const bars = this.svg.append("g")
-      .selectAll("g")
+      const lines = this.svg.append("g")
+      .selectAll("path")
 
-      const bars_ = bars.data(data)
-      .enter()
-      .append("g")
-        .style("transform",d=>`translate(${x(d[grp])}px,0)`)
-      .selectAll("rect")
-      .data(d=>(subgroups.map(key=>({key:key,value:d[key]}))))
-      .join("rect")
-
-        bars_.attr("x",d=>xsub(d.key))
-        .attr("y",this.height - ywidth)
-        .attr("width",xsub.bandwidth())
-        .attr("height",0)
-        .attr("fill",d=>color(d.key));
+      const lines_ = lines
+      .data(dataset)
+      .join("path")
+      .datum(d=>groups.map((a,i)=>({name:a,value:d.value[i]})))
+        .attr("name",d=>d.key)
+        .attr("d",d3.line().x(d=>x(d.name)+x.bandwidth()*.5).y(d=>y(d.value)))
+        .attr("stroke",(d,i)=>color(subgroups[i]))
+        .attr("stroke-width",30)
+        .attr("fill","none")
+        .style("mix-blend-mode","multiply")
 
       const Bottom = this.svg.append("g")
       .attr("class","axisY slope")
@@ -95,38 +95,11 @@ export default {
       axis.select(".domain").attr("style",`opacity:1;transform:translate(0,-${gap}px)`).attr("stroke-width","2px")
 
       this.update = (idx)=>{
-          this.tab = idx;
-          let data = Object.entries(this.data[idx])
-          if(this.d == 2) data = data.slice(1)
 
-          y
-          .domain([0,100])
-
-          x
-          .domain(groups)
-          .range([0,this.width])
-
-          xsub
-          .domain(subgroups)
-          .range([0,x.bandwidth()])
-
-          Bottom.transition().duration(300).ease(d3.easeQuadOut).call(d3.axisBottom(x).tickSize(0));
-
-          bars_
-          .selectAll("rect")
-            .attr("x",d=>xsub(d.key))
-            .attr("width",xsub.bandwidth())
       };
 
       this.comp.onIntersection(()=>{
-        bars
-        .data(data)
-        .enter()
-        .selectAll("rect")
-          .transition().duration(600).ease(d3.easeQuadOut)
-          .delay((d,i)=>i*100)
-          .attr("y",d=>y(d.value))
-          .attr("height",d=>this.height - ywidth - y(d.value))
+
       });
 
     }

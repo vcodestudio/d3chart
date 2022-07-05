@@ -44,24 +44,29 @@
 <line-graph-1 :height="550" csv="/example_data/d2_line.csv">
   <p class="title">언론산업 사업체의 지역별 분포 (2014~2019) (단위: 개)</p>
 </line-graph-1>
-<stack-graph-2 :height="800" csv="/example_data/d3_multi.csv" :d="3" :title="`매체 영향력에 대한 답변 (단위: %)`" :desc="`귀하께서는 사회적 이슈에 관한 우리 사회의 여론에 아래 매체가 얼마나 영향을 미친다고 생각하십니까?`">
-
+<stack-graph-2 :height="800" csv="/example_data/d3_multi.csv" :d="3" :title="`스택 탭 있는 버전`" :desc="`귀하께서는 사회적 이슈에 관한 우리 사회의 여론에 아래 매체가 얼마나 영향을 미친다고 생각하십니까?`">
 </stack-graph-2>
+<stack-graph-2 :height="800" csv="/example_data/d2_multi.csv" :d="2" :title="`스택 탭 없는 버전`" :desc="`귀하께서는 사회적 이슈에 관한 우리 사회의 여론에 아래 매체가 얼마나 영향을 미친다고 생각하십니까?`">
+</stack-graph-2>
+<BarChartGraph1 :height="550" csv="/example_data/d2_line.csv" :d="2">
+  <p class="title">혼용 예시</p>
+</BarChartGraph1>
 </div>
 </template>
 
 <script>
-import EngChart from '../components/EngChart.vue';
-import BarGraph from '../components/BarGraph-1.vue';
-import BarGraph2 from '../components/BarGraph-2.vue';
-import RadChart from '../components/RadChart.vue';
-import BarGraph3 from '../components/BarGraph-3.vue';
-import StackGraph1 from '../components/StackGraph-1.vue';
-import LineGraph1 from '../components/LineGraph-1.vue';
-import StackGraph2 from '../components/StackGraph-2.vue';
+import EngChart from '~/components/Charts/EngChart.vue';
+import BarGraph from '~/components/Charts/BarGraph-1.vue';
+import BarGraph2 from '~/components/Charts/BarGraph-2.vue';
+import RadChart from '~/components/Charts/RadChart.vue';
+import BarGraph3 from '~/components/Charts/BarGraph-3.vue';
+import StackGraph1 from '~/components/Charts/StackGraph-1.vue';
+import LineGraph1 from '~/components/Charts/LineGraph-1.vue';
+import StackGraph2 from '~/components/Charts/StackGraph-2.vue';
+import BarChartGraph1 from '~/components/Charts/BarChartGraph-1.vue';
 
 export default {
-  components:{ EngChart, BarGraph, BarGraph2, RadChart, BarGraph3, StackGraph1, LineGraph1, StackGraph2 },
+  components:{ EngChart, BarGraph, BarGraph2, RadChart, BarGraph3, StackGraph1, LineGraph1, StackGraph2, BarChartGraph1 },
 }
 </script>
 

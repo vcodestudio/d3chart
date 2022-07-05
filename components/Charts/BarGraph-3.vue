@@ -3,6 +3,7 @@
     <div>
       <slot></slot>
     </div>
+    <TopColors :data="tabs.map((a,i)=>({color:color[i],name:a}))"/>
     <svg :width="width" :height="height" ref="svg"></svg>
   </div>
 </template>
@@ -10,7 +11,7 @@
 <script>
 import * as d3 from "d3";
 import chart_mixin from "~/assets/chartTemplate/mixin";
-import TopColors from './d3Comps/TopColors.vue';
+import TopColors from '~/components/d3Comps/TopColors.vue';
 
 export default {
   mixins:[chart_mixin],
@@ -40,6 +41,7 @@ export default {
       const ywidth = 120
       const cap = 220
       const gap = this.gap
+      let data = this.data;
 
       const subgroups = this.data.columns.slice(1);
       const grp = this.data.columns[0];
@@ -51,35 +53,38 @@ export default {
       .scaleBand()
       .domain(groups)
       .range([0,this.width])
-      .padding([.3])
-      .paddingOuter(0)
+      .padding(.1)
 
       const y = d3.scaleLinear()
-      .domain([0,350])
+      .domain([0,100])
       .range([this.height - ywidth,0]);
+
+      //drawer
+      const xsub = d3.scaleBand()
+      .domain(subgroups)
+      .range([0,x.bandwidth()])
+      .padding(.05)
 
       const color = d3.scaleOrdinal()
       .domain(subgroups)
       .range(this.color)
 
-      const stack = d3.stack()
-      .keys(subgroups)
-      (this.data)
-
       const bars = this.svg.append("g")
       .selectAll("g")
 
-      const bars_ = bars.data(this.data)
-      .data(stack)
-      .enter().append("g")
-        .attr("fill",d=>color(d.key))
-        .selectAll("rect")
-        .data(d=>d)
-        .enter().append("rect")
-          .attr("x",(d,i)=>x(groups[i]))
-          .attr("y",d=>y(d[1]))
-          .attr("height",d=>y(d[0]) - y(d[1]))
-          .attr("width",x.bandwidth())
+      const bars_ = bars.data(data)
+      .enter()
+      .append("g")
+        .style("transform",d=>`translate(${x(d[grp])}px,0)`)
+      .selectAll("rect")
+      .data(d=>(subgroups.map(key=>({key:key,value:d[key]}))))
+      .join("rect")
+
+        bars_.attr("x",d=>xsub(d.key))
+        .attr("y",this.height - ywidth)
+        .attr("width",xsub.bandwidth())
+        .attr("height",0)
+        .attr("fill",d=>color(d.key));
 
       const Bottom = this.svg.append("g")
       .attr("class","axisY slope")
@@ -90,38 +95,38 @@ export default {
       axis.select(".domain").attr("style",`opacity:1;transform:translate(0,-${gap}px)`).attr("stroke-width","2px")
 
       this.update = (idx)=>{
-          // this.tab = idx;
-          // let data = Object.entries(this.data[idx])
-          // if(this.d == 2) data = data.slice(1)
+          this.tab = idx;
+          let data = Object.entries(this.data[idx])
+          if(this.d == 2) data = data.slice(1)
 
-          // y
-          // .domain([0,100])
+          y
+          .domain([0,100])
 
-          // x
-          // .domain(groups)
-          // .range([0,this.width])
+          x
+          .domain(groups)
+          .range([0,this.width])
 
-          // xsub
-          // .domain(subgroups)
-          // .range([0,x.bandwidth()])
+          xsub
+          .domain(subgroups)
+          .range([0,x.bandwidth()])
 
-          // Bottom.transition().duration(300).ease(d3.easeQuadOut).call(d3.axisBottom(x).tickSize(0));
+          Bottom.transition().duration(300).ease(d3.easeQuadOut).call(d3.axisBottom(x).tickSize(0));
 
-          // bars_
-          // .selectAll("rect")
-          //   .attr("x",d=>xsub(d.key))
-          //   .attr("width",xsub.bandwidth())
+          bars_
+          .selectAll("rect")
+            .attr("x",d=>xsub(d.key))
+            .attr("width",xsub.bandwidth())
       };
 
       this.comp.onIntersection(()=>{
-        // bars
-        // .data(data)
-        // .enter()
-        // .selectAll("rect")
-        //   .transition().duration(600).ease(d3.easeQuadOut)
-        //   .delay((d,i)=>i*100)
-        //   .attr("y",d=>y(d.value))
-        //   .attr("height",d=>this.height - ywidth - y(d.value))
+        bars
+        .data(data)
+        .enter()
+        .selectAll("rect")
+          .transition().duration(600).ease(d3.easeQuadOut)
+          .delay((d,i)=>i*100)
+          .attr("y",d=>y(d.value))
+          .attr("height",d=>this.height - ywidth - y(d.value))
       });
 
     }

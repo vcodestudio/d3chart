@@ -11,7 +11,7 @@
 <script>
 import * as d3 from "d3";
 import chart_mixin from "~/assets/chartTemplate/mixin";
-import TopColors from './d3Comps/TopColors.vue';
+import TopColors from '~/components/d3Comps/TopColors.vue';
 
 export default {
   mixins:[chart_mixin],
@@ -25,26 +25,27 @@ export default {
         return ["#E8A440","#CC322C","#0514D5","#439463"]
       }
     },
-    line:{
-      default:true
-    },
   },
   data() {
     return {
       total: "0",
       tabs:[],
       tab:0,
+      line:true
     }
   },
   methods:{
     render() { //최대값 구하기 + 사이즈 조정 대응
-      const ywidth = 120
+      const margin = [120,30]
       const cap = 220
       const gap = this.gap
 
-      const subgroups = this.data.columns.slice(1);
       const grp = this.data.columns[0];
       const groups = d3.map(this.data,d=>d[grp]);
+      let subgroups = this.data.columns.slice(1);
+      let subgrp = [...subgroups];
+      let lineGroups = subgrp.splice(0,subgrp.length-1);
+      let barGroups = subgrp;
 
       let data = this.data;
 
@@ -66,7 +67,7 @@ export default {
 
       const y = d3.scaleLinear()
       .domain([0,d3.max(allValues)])
-      .range([this.height - ywidth,30]);
+      .range([this.height - margin[0],30]);
 
       const color = d3.scaleOrdinal()
       .domain(subgroups)
@@ -81,17 +82,42 @@ export default {
       .datum(d=>groups.map((a,i)=>({name:a,value:d.value[i]})))
         .attr("name",d=>d.key)
         .attr("d",d3.line().x(d=>x(d.name)+x.bandwidth()*.5).y(d=>y(d.value)))
-        .attr("stroke",(d,i)=>color(subgroups[i]))
+        .attr("stroke",(d,i)=>color(lineGroups[i]))
         .attr("stroke-width",30)
         .attr("fill","none")
         .style("mix-blend-mode","multiply")
 
+      const bars = this.svg
+      .append("g")
+      .selectAll("whatever")
+      .data(data)
+      .join("rect")
+      .attr("x",d=>x(d[0]))
+      .attr("y",this.height - ywidth)//d=>y(d[1])
+      .attr("width",x.bandwidth())
+      .attr("height",0)
+      .attr("fill",this.color)
+
+      const txts = this.svg
+      .append("g")
+
+      let txts_ = txts
+      .selectAll("whatever")
+      .data(data)
+      .join("text")
+      .attr("class","innerRect")
+      .attr("x",d=>x(d[0]) + x.bandwidth()*.5)
+      .attr("y",this.height - ywidth)
+      .attr("text-anchor","middle")
+      .attr("fill","#fff")
+      .text(d=>this.toLocale(d[1]))
+
       const Bottom = this.svg.append("g")
       .attr("class","axisY slope")
-      .style("transform",`translate(0,${this.height - ywidth + gap}px)`)
+      .style("transform",`translate(0,${this.height - margin[0] + gap}px)`)
 
       const axis = Bottom.call(d3.axisBottom(x).tickSize(0))
-      axis.selectAll("text").attr("text-anchor","center").style("transform",`translate(0,${ywidth*.25}px) rotate(-30deg)`)
+      axis.selectAll("text").attr("text-anchor","center").style("transform",`translate(0,${margin[0]*.25}px) rotate(-30deg)`)
       axis.select(".domain").attr("style",`opacity:1;transform:translate(0,-${gap}px)`).attr("stroke-width","2px")
 
       this.update = (idx)=>{

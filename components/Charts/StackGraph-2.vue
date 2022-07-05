@@ -9,15 +9,18 @@
     </div>
     <p class="desc">{{desc}}</p>
     <svg :width="width" :height="height" ref="svg"></svg>
+    <TopColors :data="subgroups.map((a,i)=>({color:color[i],name:a}))"/>
   </div>
 </template>
 
 <script>
 import * as d3 from "d3";
 import chart_mixin from "~/assets/chartTemplate/mixin";
+import TopColors from '../d3Comps/TopColors.vue';
 
 export default {
   mixins:[chart_mixin],
+  components:{TopColors},
   props:{
     name:{
       default:"Media"
@@ -38,19 +41,19 @@ export default {
     },
     d:{
       default:2
-    }
+    },
   },
   data() {
     return {
       total: "0",
       tabs:[],
       tab:0,
+      subgroups:[]
     }
   },
   methods:{
-    render() { //최대값 구하기 + 사이즈 조정 대응
-      const margin = [120,120];
-      const cap = 220
+    render() { //애니메이션
+      const margin = [120,13]
       const gap = this.gap
 
       const subgroups = this.data.columns.slice(this.d-1);
@@ -59,54 +62,75 @@ export default {
 
       let data = this.data;
       if(this.d == 3) {
-        const tgrp = data.columns[0];
-        const tabs = [...new Set(data.map(a=>a[tgrp]))];
-        this.tabs = tabs;
-        data = data.filter(a=>a[tgrp] == tabs[this.tab])
+          const tgrp = data.columns[0];
+          const tabs = [...new Set(data.map(a=>a[tgrp]))];
+          this.tabs = tabs;
       }
+
+      data = this.dataSet(this.data,subgroups);
+
+      this.subgroups = subgroups
+
+      const x = d3.scaleLinear()
+      .domain([0,100])
+      .range([margin[0],this.width])
 
       const y = d3.scaleBand()
       .domain(groups)
       .range([0,this.height - margin[1]])
+      .padding(.1)
 
       const Left = this.svg.append("g")
       .style("transform",`translate(${margin[0] - gap}px,0)`)
       const axisLeft = Left.call(d3.axisLeft(y).tickSize(0));
 
-      const stack = d3.stack()
-      .keys(groups)
+      let stack = d3.stack()
+      .keys(subgroups)
       (data)
 
-      console.log("stack",data,stack);
+      const color = d3.scaleOrdinal()
+      .domain(subgroups)
+      .range(this.color)
 
+      // groups 미디어..
+      // subg 매우..
+      console.log("stack",stack)
       const bar = this.svg.append("g")
+
+      const bar_ = bar
+      .selectAll("g")
       .data(stack)
-      .enter().append("g")
-        .attr("name",d=>d)
+      .join("g")
+        .selectAll("rect")
+        .data(d=>d.map(a=>({key:d.key,index:d.index,value:a})))
+        .join("rect")
+          .attr("fill",(d,i)=>color(d.key))
+          .attr("x",(d,i)=>x(d.value[0]))
+          .attr("y",(d,i)=>y(groups[i]))
+          .attr("width",d=>x(d.value[1]) - x(d.value[0]))
+          .attr("height",y.bandwidth())
 
 
       this.update = (idx)=>{
-          // this.tab = idx;
-          // let data = Object.entries(this.data[idx])
-          // if(this.d == 2) data = data.slice(1)
+          this.tab = idx;
 
-          // y
-          // .domain([0,100])
+          let data = this.dataSet(this.data,subgroups);
+          
+          let stack = d3.stack()
+          .keys(subgroups)
+          (data)
 
-          // x
-          // .domain(groups)
-          // .range([0,this.width])
-
-          // xsub
-          // .domain(subgroups)
-          // .range([0,x.bandwidth()])
-
-          // Bottom.transition().duration(300).ease(d3.easeQuadOut).call(d3.axisBottom(x).tickSize(0));
-
-          // bars_
-          // .selectAll("rect")
-          //   .attr("x",d=>xsub(d.key))
-          //   .attr("width",xsub.bandwidth())
+          x
+          .range([margin[0],this.width])
+          
+          const bwrap = bar.selectAll("g")
+          .data(stack)
+          .selectAll("rect")
+        
+            bwrap.data(d=>d.map(a=>({key:d.key,index:d.index,value:a})))
+            .transition().duration(300).ease(d3.easeQuadOut).delay((d,i)=>120*i)
+              .attr("x",(d,i)=>x(d.value[0]))
+              .attr("width",d=>x(d.value[1]) - x(d.value[0]))
       };
 
       this.comp.onIntersection(()=>{
@@ -120,6 +144,29 @@ export default {
         //   .attr("height",d=>this.height - ywidth - y(d.value))
       });
 
+    },
+    dataSet(data,subgroups) {
+        if(this.d == 3) {
+          const tgrp = data.columns[0];
+          data = data.filter(a=>a[tgrp] == this.tabs[this.tab])
+        }
+        data = data.map(a=>{
+          subgroups.forEach((b)=>{
+            a[b] = parseFloat(a[b]);
+          })
+          return a;
+        });
+
+        //Normalize
+        data.forEach(function(d){
+          // Compute the total
+          let tot = 0
+          for (let i in subgroups){ let n=subgroups[i] ; tot += +d[n] }
+          // Now normalize
+          for (let i in subgroups){ let n=subgroups[i] ; d[n] = d[n] / tot * 100}
+        })
+
+        return data;
     }
   }
 }

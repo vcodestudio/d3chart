@@ -13,6 +13,7 @@
     "precommit": "npm run lint"
   },
   "dependencies": {
+    "console": "^0.7.2",
     "d3": "^7.4.4",
     "less-loader": "^5.0.0",
     "nuxt": "^2.0.0"

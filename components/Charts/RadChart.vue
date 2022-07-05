@@ -9,7 +9,7 @@
 
 <script>
 import * as d3 from "d3";
-import TopColors from "./d3Comps/TopColors.vue";
+import TopColors from "~/components/d3Comps/TopColors.vue";
 import chart_mixin from "~/assets/chartTemplate/mixin";
 
 export default {
@@ -47,7 +47,7 @@ export default {
 </script>
 
 <style lang="less">
-@import url("../assets/chartTemplate/global.less");
+@import url("~/assets/chartTemplate/global.less");
     .selector {
         width:100%;
         display: flex;
